@@ -6,7 +6,6 @@
 package de.ust.skill.common.jvm.streams;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
@@ -21,114 +20,58 @@ import java.util.Stack;
  */
 final public class FileInputStream extends InStream {
 
-	private final MappedByteBuffer input;
-	private final Stack<Long> positions = new Stack<Long>();
-	private final Path path;
-	private final FileChannel file;
+    private final Stack<Long> positions = new Stack<Long>();
+    private final Path path;
+    private final FileChannel file;
 
-	public FileInputStream(Path path) throws IOException {
-		this.file = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ);
-		input = file.map(MapMode.READ_ONLY, 0, file.size());
-		this.path = path;
-	}
+    public static FileInputStream open(Path path) throws IOException {
+        FileChannel file = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ);
+        return new FileInputStream(file, path);
+    }
 
-	@Override
-	public long position() {
-		return input.position();
-	}
+    private FileInputStream(FileChannel file, Path path) throws IOException {
+        super(file.map(MapMode.READ_ONLY, 0, file.size()));
+        this.file = file;
+        this.path = path;
+    }
 
-	@Override
-	public void jump(long position) {
-		input.position((int) position);
-	}
+    /**
+     * Maps a part of a file not changing the position of the file stream.
+     * 
+     * @param basePosition
+     *            absolute start index of the mapped region
+     * @param begin
+     *            begin offset of the mapped region
+     * @param end
+     *            end offset of the mapped region
+     */
+    synchronized public MappedInStream map(long basePosition, long begin, long end) throws IOException {
+        return new MappedInStream(file.map(MapMode.READ_ONLY, basePosition + begin, end - begin));
+    }
 
-	@Override
-	public void push(long position) {
-		positions.push((long) input.position());
-		input.position((int) position);
-	}
+    @Override
+    public void jump(long position) {
+        input.position((int) position);
+    }
 
-	@Override
-	public void pop() {
-		input.position(positions.pop().intValue());
-	}
+    public void push(long position) {
+        positions.push((long) input.position());
+        input.position((int) position);
+    }
 
-	@Override
-	public boolean eof() {
-		return input.limit() == input.position();
-	}
+    public void pop() {
+        input.position(positions.pop().intValue());
+    }
 
-	@Override
-	public boolean has(int n) {
-		return input.limit() >= n + input.position();
-	}
+    public Path path() {
+        return path;
+    }
 
-	@Override
-	public byte[] bytes(long length) {
-		final byte[] rval = new byte[(int) length];
-		input.get(rval);
-		return rval;
-	}
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
 
-	@Override
-	public boolean bool() {
-		return input.get() != 0;
-	}
-
-	@Override
-	public byte i8() {
-		return input.get();
-	}
-
-	@Override
-	public short i16() {
-		return input.getShort();
-	}
-
-	@Override
-	public int i32() {
-		return input.getInt();
-	}
-
-	@Override
-	public long i64() {
-		return input.getLong();
-	}
-
-	@Override
-	public long v64() {
-		long count = 0;
-		long rval = 0;
-		long r = i8();
-		while (count < 8 && 0 != (r & 0x80)) {
-			rval |= (r & 0x7f) << (7 * count);
-
-			count += 1;
-			r = i8();
-		}
-		rval = (rval | (8 == count ? r : (r & 0x7f)) << (7 * count));
-		return rval;
-	}
-
-	@Override
-	public float f32() {
-		return input.getFloat();
-	}
-
-	@Override
-	public double f64() {
-		return input.getDouble();
-	}
-
-	public Path path() {
-		return path;
-	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-
-		if (file.isOpen())
-			file.close();
-	}
+        if (file.isOpen())
+            file.close();
+    }
 }

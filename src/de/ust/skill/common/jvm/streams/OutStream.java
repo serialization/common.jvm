@@ -38,11 +38,17 @@ abstract public class OutStream {
 
 	protected abstract void refresh() throws IOException;
 
-	final public void i8(byte data) throws IOException {
-		if (null == buffer || buffer.position() == BUFFERSIZE)
-			refresh();
-		buffer.put(data);
-	}
+    final public void bool(boolean data) throws IOException {
+        if (null == buffer || buffer.position() == BUFFERSIZE)
+            refresh();
+        buffer.put(data ? (byte) 0xFF : (byte) 0x00);
+    }
+
+    final public void i8(byte data) throws IOException {
+        if (null == buffer || buffer.position() == BUFFERSIZE)
+            refresh();
+        buffer.put(data);
+    }
 
 	final public void i16(short data) throws IOException {
 		if (null == buffer || buffer.position() + 2 > BUFFERSIZE)
