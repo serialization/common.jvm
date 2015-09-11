@@ -41,7 +41,8 @@ final public class FileOutputStream extends OutStream {
     }
 
     public static FileOutputStream write(Path target) throws IOException {
-        Files.deleteIfExists(target);
+        if (!System.getProperty("os.name").toLowerCase().startsWith("windows"))
+            Files.deleteIfExists(target);
         return new FileOutputStream(FileChannel.open(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.READ));
     }
@@ -75,7 +76,7 @@ final public class FileOutputStream extends OutStream {
             final int p = buffer.position();
             buffer.limit(p);
             buffer.position(0);
-            assert (p == buffer.remaining());
+            assert(p == buffer.remaining());
             file.write(buffer, position);
             position += p;
         }
