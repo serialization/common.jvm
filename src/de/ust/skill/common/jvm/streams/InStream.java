@@ -5,7 +5,7 @@
 \*                                                                            */
 package de.ust.skill.common.jvm.streams;
 
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Implementations of this class are used to turn a byte stream into a stream of
@@ -14,9 +14,9 @@ import java.nio.MappedByteBuffer;
  * @author Timm Felden
  */
 public abstract class InStream {
-    protected final MappedByteBuffer input;
+    protected final ByteBuffer input;
 
-    protected InStream(MappedByteBuffer input) {
+    protected InStream(ByteBuffer input) {
         this.input = input;
 	}
 

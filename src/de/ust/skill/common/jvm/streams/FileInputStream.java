@@ -6,6 +6,7 @@
 package de.ust.skill.common.jvm.streams;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
@@ -45,13 +46,29 @@ final public class FileInputStream extends InStream {
      * @param end
      *            end offset of the mapped region
      */
-    synchronized public MappedInStream map(long basePosition, long begin, long end) throws IOException {
-        return new MappedInStream(file.map(MapMode.READ_ONLY, basePosition + begin, end - begin));
+    synchronized public MappedInStream map(long basePosition, long begin, long end) {
+        ByteBuffer r = input.duplicate();
+        r.position((int) (basePosition + begin));
+        r.limit((int) (basePosition + end));
+        return new MappedInStream(r);
     }
 
     @Override
     public void jump(long position) {
         input.position((int) position);
+    }
+
+    /**
+     * Maps from current position until offset.
+     * 
+     * @return a buffer that has exactly offset many bytes remaining
+     */
+    public final MappedInStream jumpAndMap(int offset) {
+        ByteBuffer r = input.duplicate();
+        int pos = input.position();
+        r.limit(pos + offset);
+        input.position(pos + offset);
+        return new MappedInStream(r);
     }
 
     public void push(long position) {

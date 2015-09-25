@@ -6,7 +6,6 @@
 package de.ust.skill.common.jvm.streams;
 
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 
 /**
  * This stream is used to parse a mapped region of field data.
@@ -15,7 +14,7 @@ import java.nio.MappedByteBuffer;
  */
 public class MappedInStream extends InStream {
 
-    public MappedInStream(MappedByteBuffer input) {
+    public MappedInStream(ByteBuffer input) {
         super(input);
     }
 
