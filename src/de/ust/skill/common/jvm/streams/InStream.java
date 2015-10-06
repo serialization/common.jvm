@@ -49,7 +49,7 @@ public abstract class InStream {
     @SuppressWarnings("all")
     private long multiByteV64(long rval) {
         long r;
-        rval = (rval & 0x7f) | ((r = i8()) & 0x7f) << 7;
+        rval = (rval & 0x7f) | (((r = i8()) & 0x7f) << 7);
 
         if (0 != (r & 0x80)) {
             rval |= ((r = i8()) & 0x7f) << 14;
@@ -65,11 +65,12 @@ public abstract class InStream {
 
                         if (0 != (r & 0x80)) {
                             rval |= ((r = i8()) & 0x7f) << 42;
+
                             if (0 != (r & 0x80)) {
                                 rval |= ((r = i8()) & 0x7f) << 49;
 
                                 if (0 != (r & 0x80)) {
-                                    rval |= i8() << 56;
+                                    rval |= (((long) i8()) << 56);
                                 }
                             }
                         }
