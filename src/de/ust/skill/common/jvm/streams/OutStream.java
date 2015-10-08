@@ -15,9 +15,6 @@ import java.nio.ByteBuffer;
  */
 abstract public class OutStream {
 
-    // the buffer size is only used for mapping headers, which are usually
-    // smaller
-    protected final int BUFFERSIZE;
     protected ByteBuffer buffer;
 
     // current write position
@@ -32,37 +29,36 @@ abstract public class OutStream {
 
     protected OutStream(ByteBuffer buffer) {
         this.buffer = buffer;
-        BUFFERSIZE = buffer.capacity();
     }
 
     protected abstract void refresh() throws IOException;
 
     final public void bool(boolean data) throws IOException {
-        if (null == buffer || buffer.position() == BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 1)
             refresh();
         buffer.put(data ? (byte) 0xFF : (byte) 0x00);
     }
 
     final public void i8(byte data) throws IOException {
-        if (null == buffer || buffer.position() == BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 1)
             refresh();
         buffer.put(data);
     }
 
     final public void i16(short data) throws IOException {
-        if (null == buffer || buffer.position() + 2 > BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 2)
             refresh();
         buffer.putShort(data);
     }
 
     final public void i32(int data) throws IOException {
-        if (null == buffer || buffer.position() + 4 > BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 4)
             refresh();
         buffer.putInt(data);
     }
 
     final public void i64(long data) throws IOException {
-        if (null == buffer || buffer.position() + 8 > BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 8)
             refresh();
         buffer.putLong(data);
     }
@@ -70,13 +66,13 @@ abstract public class OutStream {
     abstract public void v64(long data) throws IOException;
 
     final public void f32(float data) throws IOException {
-        if (null == buffer || buffer.position() + 4 > BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 4)
             refresh();
         buffer.putFloat(data);
     }
 
     final public void f64(double data) throws IOException {
-        if (null == buffer || buffer.position() + 8 > BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 8)
             refresh();
         buffer.putDouble(data);
     }

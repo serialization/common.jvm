@@ -6,7 +6,7 @@
 package de.ust.skill.common.jvm.streams;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Allows writing to memory mapped region.
@@ -15,9 +15,26 @@ import java.nio.MappedByteBuffer;
  */
 final public class MappedOutStream extends OutStream {
 
-	protected MappedOutStream(MappedByteBuffer buffer) {
+    protected MappedOutStream(ByteBuffer buffer) {
 		super(buffer);
 	}
+
+    /**
+     * @return reveals the internal buffer
+     */
+    public ByteBuffer buffer() {
+        return buffer;
+    }
+
+    /**
+     * creates a copy of this in the argument range
+     */
+    public MappedOutStream clone(int begin, int end) {
+        ByteBuffer b = buffer.duplicate();
+        b.position(begin);
+        b.limit(end);
+        return new MappedOutStream(b);
+    }
 
 	@Override
 	protected void refresh() throws IOException {

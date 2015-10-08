@@ -7,6 +7,7 @@ package de.ust.skill.common.jvm.streams;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
@@ -20,12 +21,14 @@ import java.nio.file.StandardOpenOption;
  */
 final public class FileOutputStream extends OutStream {
 
+    private static final int BUFFERSIZE = 1024;
+
     private final FileChannel file;
 
     private FileOutputStream(FileChannel file) {
         // the size is smaller then 4KiB, because headers are expected to be
         // 1KiB at most
-        super(ByteBuffer.allocate(1024));
+        super(ByteBuffer.allocate(BUFFERSIZE));
         this.file = file;
     }
 
@@ -35,7 +38,7 @@ final public class FileOutputStream extends OutStream {
     private FileOutputStream(FileChannel file, long position) {
         // the size is smaller then 4KiB, because headers are expected to be
         // 1KiB at most
-        super(ByteBuffer.allocate(1024));
+        super(ByteBuffer.allocate(BUFFERSIZE));
         this.file = file;
         this.position = position;
     }
@@ -76,7 +79,7 @@ final public class FileOutputStream extends OutStream {
             final int p = buffer.position();
             buffer.limit(p);
             buffer.position(0);
-            assert(p == buffer.remaining());
+            assert (p == buffer.remaining());
             file.write(buffer, position);
             position += p;
         }
@@ -98,10 +101,29 @@ final public class FileOutputStream extends OutStream {
             file.write(ByteBuffer.wrap(data), position);
             position += data.length;
         } else {
-            if (null == buffer || buffer.position() + data.length > BUFFERSIZE)
+            if (null == buffer || buffer.capacity() < data.length)
                 refresh();
             buffer.put(data);
         }
+    }
+
+    /**
+     * Create a map and advance position by the map's size
+     * 
+     * @param size
+     *            size of the mapped region
+     * @return the created map
+     * @throws IOException
+     */
+    public MappedOutStream mapBlock(int size) throws IOException {
+        if (null != buffer) {
+            flush();
+            buffer = null;
+        }
+        long pos = this.position();
+        MappedByteBuffer r = file.map(MapMode.READ_WRITE, pos, size);
+        this.position = pos + size;
+        return new MappedOutStream(r);
     }
 
     /**
@@ -131,6 +153,7 @@ final public class FileOutputStream extends OutStream {
      * @param end
      *            end offset of the mapped region
      */
+    @Deprecated
     synchronized public MappedOutStream map(long basePosition, long begin, long end) throws IOException {
         if (null != buffer) {
             flush();
@@ -152,7 +175,7 @@ final public class FileOutputStream extends OutStream {
 
     @Override
     public final void v64(long v) throws IOException {
-        if (null == buffer || buffer.position() + 9 >= BUFFERSIZE)
+        if (null == buffer || buffer.capacity() < 9)
             refresh();
 
         if (0L == (v & 0xFFFFFFFFFFFFFF80L)) {
