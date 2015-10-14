@@ -18,12 +18,29 @@ public class MappedInStream extends InStream {
         super(input);
     }
 
+    /**
+     * creates a view onto this buffer that will not affect the buffer itself
+     * 
+     * @param begin
+     *            relative beginning of the mapped stream
+     * @param end
+     *            relative ending of the mapped stream
+     * @return a new mapped in stream, that can read from begin to end
+     */
+    public MappedInStream view(int begin, int end) {
+        ByteBuffer r = input.duplicate();
+        int pos = input.position();
+        r.position(pos + begin);
+        r.limit(pos + end);
+        return new MappedInStream(r);
+    }
+
     public ByteBuffer asByteBuffer() {
         return input;
     }
 
-	@Override
-	public void jump(long position) {
+    @Override
+    public void jump(long position) {
         throw new IllegalStateException("there is no sane reason to jump in a mapped stream");
-	}
+    }
 }
