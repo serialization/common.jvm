@@ -101,7 +101,7 @@ final public class FileOutputStream extends OutStream {
             file.write(ByteBuffer.wrap(data), position);
             position += data.length;
         } else {
-            if (null == buffer || buffer.capacity() < data.length)
+            if (null == buffer || buffer.remaining() < data.length)
                 refresh();
             buffer.put(data);
         }
@@ -175,7 +175,7 @@ final public class FileOutputStream extends OutStream {
 
     @Override
     public final void v64(long v) throws IOException {
-        if (null == buffer || buffer.capacity() < 9)
+        if (null == buffer || buffer.remaining() < 9)
             refresh();
 
         if (0L == (v & 0xFFFFFFFFFFFFFF80L)) {
