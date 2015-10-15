@@ -43,4 +43,10 @@ public class MappedInStream extends InStream {
     public void jump(long position) {
         throw new IllegalStateException("there is no sane reason to jump in a mapped stream");
     }
+
+    @Override
+    public String toString() {
+        return String.format("MappedInStream(0x%X -> 0x%X, next: 0x%X)", input.position(), input.limit(),
+                input.get(input.position()));
+    }
 }
