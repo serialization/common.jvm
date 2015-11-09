@@ -7,6 +7,7 @@ package de.ust.skill.common.jvm.streams;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 
 /**
  * Allows writing to memory mapped region.
@@ -92,5 +93,11 @@ final public class MappedOutStream extends OutStream {
                 }
             }
         }
+    }
+
+    @Override
+    public void close() {
+        ((MappedByteBuffer) buffer).force();
+        buffer = null;
     }
 }

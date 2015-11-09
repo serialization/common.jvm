@@ -5,12 +5,12 @@
 \*                                                                            */
 package de.ust.skill.common.jvm.streams;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -44,8 +44,10 @@ final public class FileOutputStream extends OutStream {
     }
 
     public static FileOutputStream write(Path target) throws IOException {
-        if (!System.getProperty("os.name").toLowerCase().startsWith("windows"))
-            Files.deleteIfExists(target);
+        File f = target.toFile();
+        if (f.exists()) {
+            f.delete();
+        }
         return new FileOutputStream(FileChannel.open(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.READ));
     }
@@ -144,29 +146,9 @@ final public class FileOutputStream extends OutStream {
     }
 
     /**
-     * Creates a map as usually used for writing field data chunks concurrently.
-     * 
-     * @param basePosition
-     *            absolute start index of the mapped region
-     * @param begin
-     *            begin offset of the mapped region
-     * @param end
-     *            end offset of the mapped region
-     */
-    @Deprecated
-    synchronized public MappedOutStream map(long basePosition, long begin, long end) throws IOException {
-        if (null != buffer) {
-            flush();
-            buffer = null;
-        }
-        long p = basePosition + end;
-        position = position < p ? p : position;
-        return new MappedOutStream(file.map(MapMode.READ_WRITE, basePosition + begin, end - begin));
-    }
-
-    /**
      * signal the stream to close
      */
+    @Override
     public void close() throws IOException {
         flush();
         file.force(false);

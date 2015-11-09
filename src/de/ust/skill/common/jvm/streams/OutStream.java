@@ -76,4 +76,11 @@ abstract public class OutStream {
             refresh();
         buffer.putDouble(data);
     }
+
+    /**
+     * close the out stream; this should not be necessary, but apparently, windows does not play by the rules
+     * 
+     * @throws IOException
+     */
+    abstract public void close() throws IOException;
 }
