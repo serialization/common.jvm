@@ -5,12 +5,12 @@
 \*                                                                            */
 package de.ust.skill.common.jvm.streams;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -43,13 +43,20 @@ final public class FileOutputStream extends OutStream {
         this.position = position;
     }
 
+    /**
+     * if we are on windows, then we have to change some implementation details
+     */
+    public static final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
     public static FileOutputStream write(Path target) throws IOException {
-        File f = target.toFile();
-        if (f.exists()) {
-            f.delete();
-        }
+        if (isWindows)
+            return new FileOutputStream(FileChannel.open(target, StandardOpenOption.WRITE, StandardOpenOption.READ));
+
+        Files.deleteIfExists(target);
+
         return new FileOutputStream(FileChannel.open(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.READ));
+
     }
 
     /**

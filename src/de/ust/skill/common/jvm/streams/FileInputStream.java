@@ -84,11 +84,14 @@ final public class FileInputStream extends InStream {
         return path;
     }
 
+    public void close() throws IOException {
+        if (file.isOpen())
+            file.close();
+    }
+
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-
-        if (file.isOpen())
-            file.close();
+        close();
     }
 }
