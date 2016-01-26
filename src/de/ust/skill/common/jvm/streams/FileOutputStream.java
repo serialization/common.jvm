@@ -10,9 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 /**
  * BufferedOutputStream based output stream.
@@ -43,20 +40,10 @@ final public class FileOutputStream extends OutStream {
         this.position = position;
     }
 
-    /**
-     * if we are on windows, then we have to change some implementation details
-     */
-    public static final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
-
-    public static FileOutputStream write(Path target) throws IOException {
-        if (isWindows)
-            return new FileOutputStream(FileChannel.open(target, StandardOpenOption.WRITE, StandardOpenOption.READ));
-
-        Files.deleteIfExists(target);
-
-        return new FileOutputStream(FileChannel.open(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.READ));
-
+    public static FileOutputStream write(FileInputStream target) throws IOException {
+        FileChannel f = target.file();
+        f.position(0);
+        return new FileOutputStream(f);
     }
 
     /**
@@ -65,8 +52,8 @@ final public class FileOutputStream extends OutStream {
      * @throws IOException
      *             propagated error
      */
-    public static FileOutputStream append(Path target) throws IOException {
-        FileChannel fc = FileChannel.open(target, StandardOpenOption.WRITE, StandardOpenOption.READ);
+    public static FileOutputStream append(FileInputStream target) throws IOException {
+        FileChannel fc = target.file();
         // workaround for a bug involving read_write maps and read + append
         // FileChannels
         fc.position(fc.size());
@@ -159,7 +146,10 @@ final public class FileOutputStream extends OutStream {
     public void close() throws IOException {
         flush();
         file.force(false);
-        file.close();
+        if (file.size() != position) {
+            file.truncate(position);
+        }
+        // file.close();
     }
 
     @Override

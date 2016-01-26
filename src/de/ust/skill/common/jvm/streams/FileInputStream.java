@@ -14,6 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Stack;
 
+import sun.misc.Cleaner;
+import sun.nio.ch.DirectBuffer;
+
 /**
  * FileChannel based input stream.
  *
@@ -24,14 +27,26 @@ final public class FileInputStream extends InStream {
     private final Stack<Long> positions = new Stack<Long>();
     private final Path path;
     private final FileChannel file;
+    /**
+     * true iff the file is shared with an output channel
+     */
+    private boolean sharedFile = false;
 
-    public static FileInputStream open(Path path) throws IOException {
-        FileChannel file = (FileChannel) Files.newByteChannel(path, StandardOpenOption.READ);
-        return new FileInputStream(file, path);
+    FileChannel file() {
+        sharedFile = true;
+        return file;
     }
 
-    private FileInputStream(FileChannel file, Path path) throws IOException {
-        super(file.map(MapMode.READ_ONLY, 0, file.size()));
+    public static FileInputStream open(Path path, boolean readOnly) throws IOException {
+        FileChannel file = (FileChannel) (readOnly
+                ? Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.READ)
+                : Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.READ,
+                        StandardOpenOption.WRITE));
+        return new FileInputStream(file, path, readOnly);
+    }
+
+    private FileInputStream(FileChannel file, Path path, boolean readOnly) throws IOException {
+        super(file.map(readOnly ? MapMode.READ_ONLY : MapMode.READ_WRITE, 0, file.size()));
         this.file = file;
         this.path = path;
     }
@@ -85,8 +100,16 @@ final public class FileInputStream extends InStream {
     }
 
     public void close() throws IOException {
-        if (file.isOpen())
-            file.close();
+        if (file.isOpen()) {
+            if (!sharedFile)
+                file.close();
+
+            if (null != input && input instanceof DirectBuffer) {
+                Cleaner cleaner = ((DirectBuffer) input).cleaner();
+                if (null != cleaner)
+                    cleaner.clean();
+            }
+        }
     }
 
     @Override
