@@ -10,6 +10,8 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 
 /**
  * BufferedOutputStream based output stream.
@@ -42,6 +44,11 @@ final public class FileOutputStream extends OutStream {
 
     public static FileOutputStream write(FileInputStream target) throws IOException {
         FileChannel f = target.file();
+        // can happen after multiple flush operations
+        if (!f.isOpen()) {
+            f = (FileChannel) Files.newByteChannel(target.path(), StandardOpenOption.CREATE, StandardOpenOption.READ,
+                    StandardOpenOption.WRITE);
+        }
         f.position(0);
         return new FileOutputStream(f);
     }
@@ -54,10 +61,16 @@ final public class FileOutputStream extends OutStream {
      */
     public static FileOutputStream append(FileInputStream target) throws IOException {
         FileChannel fc = target.file();
+        // can happen after multiple flushs
+        if (!fc.isOpen()) {
+            fc = (FileChannel) Files.newByteChannel(target.path(), StandardOpenOption.CREATE, StandardOpenOption.READ,
+                    StandardOpenOption.WRITE);
+        }
         // workaround for a bug involving read_write maps and read + append
         // FileChannels
-        fc.position(fc.size());
-        return new FileOutputStream(fc, fc.size());
+        final long size = fc.size();
+        fc.position(size);
+        return new FileOutputStream(fc, size);
     }
 
     @Override
@@ -149,7 +162,7 @@ final public class FileOutputStream extends OutStream {
         if (file.size() != position) {
             file.truncate(position);
         }
-        // file.close();
+        file.close();
     }
 
     @Override
