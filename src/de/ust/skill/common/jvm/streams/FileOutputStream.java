@@ -158,10 +158,10 @@ final public class FileOutputStream extends OutStream {
     @Override
     public void close() throws IOException {
         flush();
-        file.force(false);
         if (file.size() != position) {
             file.truncate(position);
         }
+        file.force(false);
         file.close();
     }
 
