@@ -42,6 +42,30 @@ final public class MappedOutStream extends OutStream {
         // do nothing; let the JIT remove this method and all related checks
     }
 
+    public final void v64(int v) throws IOException {
+        if (0 == (v & 0xFFFFFF80)) {
+            buffer.put((byte) v);
+        } else {
+            buffer.put((byte) (0x80 | v));
+            if (0 == (v & 0xFFFFC000)) {
+                buffer.put((byte) (v >> 7));
+            } else {
+                buffer.put((byte) (0x80 | v >> 7));
+                if (0 == (v & 0xFFE00000)) {
+                    buffer.put((byte) (v >> 14));
+                } else {
+                    buffer.put((byte) (0x80 | v >> 14));
+                    if (0 == (v & 0xF0000000)) {
+                        buffer.put((byte) (v >> 21));
+                    } else {
+                        buffer.put((byte) (0x80 | v >> 21));
+                        buffer.put((byte) (v >> 28));
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public final void v64(long v) throws IOException {
         if (0L == (v & 0xFFFFFFFFFFFFFF80L)) {

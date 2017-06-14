@@ -32,7 +32,8 @@ final public class FileOutputStream extends OutStream {
     }
 
     /**
-     * workaround for a bug involving read_write maps and read + append FileChannels
+     * workaround for a bug involving read_write maps and read + append
+     * FileChannels
      */
     private FileOutputStream(FileChannel file, long position) {
         // the size is smaller then 4KiB, because headers are expected to be
@@ -54,8 +55,8 @@ final public class FileOutputStream extends OutStream {
     }
 
     /**
-     * @return a new file output stream, that is setup to append to the target fileoutput stream, that is setup to write
-     *         the target file
+     * @return a new file output stream, that is setup to append to the target
+     *         fileoutput stream, that is setup to write the target file
      * @throws IOException
      *             propagated error
      */
@@ -97,7 +98,8 @@ final public class FileOutputStream extends OutStream {
     /**
      * put an array of bytes into the stream
      * 
-     * @note you may not reuse data after putting it to a stream, because the actual put might be a deferred operation
+     * @note you may not reuse data after putting it to a stream, because the
+     *       actual put might be a deferred operation
      * @param data
      *            the data to be written
      */
@@ -138,7 +140,8 @@ final public class FileOutputStream extends OutStream {
     /**
      * put a ByteBuffer into the stream
      * 
-     * @note you may not reuse data after putting it to a stream, because the actual put might be a deferred operation
+     * @note you may not reuse data after putting it to a stream, because the
+     *       actual put might be a deferred operation
      * @param data
      *            the data to be written
      */
@@ -163,6 +166,32 @@ final public class FileOutputStream extends OutStream {
         }
         file.force(false);
         file.close();
+    }
+
+    public final void v64(int v) throws IOException {
+        if (null == buffer || buffer.remaining() < 5)
+            refresh();
+        if (0 == (v & 0xFFFFFF80)) {
+            buffer.put((byte) v);
+        } else {
+            buffer.put((byte) (0x80 | v));
+            if (0 == (v & 0xFFFFC000)) {
+                buffer.put((byte) (v >> 7));
+            } else {
+                buffer.put((byte) (0x80 | v >> 7));
+                if (0 == (v & 0xFFE00000)) {
+                    buffer.put((byte) (v >> 14));
+                } else {
+                    buffer.put((byte) (0x80 | v >> 14));
+                    if (0 == (v & 0xF0000000)) {
+                        buffer.put((byte) (v >> 21));
+                    } else {
+                        buffer.put((byte) (0x80 | v >> 21));
+                        buffer.put((byte) (v >> 28));
+                    }
+                }
+            }
+        }
     }
 
     @Override
