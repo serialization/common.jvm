@@ -12,7 +12,6 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Stack;
 
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
@@ -24,7 +23,7 @@ import sun.nio.ch.DirectBuffer;
  */
 final public class FileInputStream extends InStream {
 
-    private final Stack<Long> positions = new Stack<Long>();
+    private int storedPosition;
     private final Path path;
     private final FileChannel file;
     /**
@@ -86,13 +85,19 @@ final public class FileInputStream extends InStream {
         return new MappedInStream(r);
     }
 
+    /**
+     * save current position and jump to a new one
+     */
     public void push(long position) {
-        positions.push((long) input.position());
+        storedPosition = input.position();
         input.position((int) position);
     }
 
+    /**
+     * restore saved position
+     */
     public void pop() {
-        input.position(positions.pop().intValue());
+        input.position(storedPosition);
     }
 
     public Path path() {
