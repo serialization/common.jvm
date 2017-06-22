@@ -63,6 +63,8 @@ abstract public class OutStream {
         buffer.putLong(data);
     }
 
+    abstract public void v64(int data) throws IOException;
+    
     abstract public void v64(long data) throws IOException;
 
     final public void f32(float data) throws IOException {

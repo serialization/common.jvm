@@ -8,7 +8,8 @@ package de.ust.skill.common.jvm.streams;
 import java.nio.ByteBuffer;
 
 /**
- * Implementations of this class are used to turn a byte stream into a stream of integers and floats.
+ * Implementations of this class are used to turn a byte stream into a stream of
+ * integers and floats.
  *
  * @author Timm Felden
  */
@@ -36,6 +37,42 @@ public abstract class InStream {
     /**
      * @return take an v64 from the stream
      */
+    public final int v32() {
+        int rval;
+
+        return (0 != ((rval = i8()) & 0x80)) ? multiByteV32(rval) : rval;
+    }
+
+    /**
+     * multi byte v64 values are treated in a different function to enable
+     * inlining of more common single byte v64 values
+     */
+    @SuppressWarnings("all")
+    final private int multiByteV32(int rval) {
+        int r;
+        rval = (rval & 0x7f) | (((r = i8()) & 0x7f) << 7);
+
+        if (0 != (r & 0x80)) {
+            rval |= ((r = i8()) & 0x7f) << 14;
+
+            if (0 != (r & 0x80)) {
+                rval |= ((r = i8()) & 0x7f) << 21;
+
+                if (0 != (r & 0x80)) {
+                    rval |= ((r = i8()) & 0x7f) << 28;
+
+                    if (0 != (r & 0x80)) {
+                        throw new IllegalStateException("unexpected overlong v64 value (expected 32bit)");
+                    }
+                }
+            }
+        }
+        return rval;
+    }
+
+    /**
+     * @return take an v64 from the stream
+     */
     public final long v64() {
         long rval;
 
@@ -43,11 +80,11 @@ public abstract class InStream {
     }
 
     /**
-     * multi byte v64 values are treated in a different function to enable inlining of more common single byte v64
-     * values
+     * multi byte v64 values are treated in a different function to enable
+     * inlining of more common single byte v64 values
      */
     @SuppressWarnings("all")
-    private long multiByteV64(long rval) {
+    final private long multiByteV64(long rval) {
         long r;
         rval = (rval & 0x7f) | (((r = i8()) & 0x7f) << 7);
 
@@ -145,7 +182,8 @@ public abstract class InStream {
      * use with care!
      * 
      * @param position
-     *            jump to target position, without the ability to restore the old position
+     *            jump to target position, without the ability to restore the
+     *            old position
      */
     public abstract void jump(long position);
 
