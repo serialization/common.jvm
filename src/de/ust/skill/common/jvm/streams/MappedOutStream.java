@@ -1,7 +1,7 @@
 /*  ___ _  ___ _ _                                                            *\
- * / __| |/ (_) | |       Your SKilL Scala Binding                            *
- * \__ \ ' <| | | |__     generated: 19.11.2014                               *
- * |___/_|\_\_|_|____|    by: Timm Felden                                     *
+** / __| |/ (_) | |       The SKilL common JVM Implementation                 **
+** \__ \ ' <| | | |__     (c) 2013-18 University of Stuttgart                 **
+** |___/_|\_\_|_|____|    see LICENSE                                         **
 \*                                                                            */
 package de.ust.skill.common.jvm.streams;
 
