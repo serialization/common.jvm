@@ -3,7 +3,7 @@
 ** \__ \ ' <| | | |__     (c) 2013-18 University of Stuttgart                 **
 ** |___/_|\_\_|_|____|    see LICENSE                                         **
 \*                                                                            */
-package de.ust.skill.common.jvm.streams;
+package ogss.common.streams;
 
 import java.nio.ByteBuffer;
 
@@ -156,15 +156,6 @@ public abstract class InStream {
     }
 
     /**
-     * @return raw byte array taken from the stream
-     */
-    public final byte[] bytes(long length) {
-        final byte[] rval = new byte[(int) length];
-        input.get(rval);
-        return rval;
-    }
-
-    /**
      * @return true iff there are at least n bytes left in the stream
      */
     public final boolean has(int n) {
@@ -178,16 +169,7 @@ public abstract class InStream {
         return input.limit() == input.position();
     }
 
-    /**
-     * use with care!
-     * 
-     * @param position
-     *            jump to target position, without the ability to restore the
-     *            old position
-     */
-    public abstract void jump(long position);
-
-    final public long position() {
+    final public int position() {
         return input.position();
     }
 }

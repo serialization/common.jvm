@@ -3,13 +3,14 @@
 ** \__ \ ' <| | | |__     (c) 2013-18 University of Stuttgart                 **
 ** |___/_|\_\_|_|____|    see LICENSE                                         **
 \*                                                                            */
-package de.ust.skill.common.jvm.streams;
+package ogss.common.streams;
 
 import java.nio.ByteBuffer;
 
 /**
  * This stream is used to parse a mapped region of field data.
  * 
+ * @note The stream is called mapped for historical reasons. In fact we map the whole file and duplicate the buffer.
  * @author Timm Felden
  */
 public class MappedInStream extends InStream {
@@ -18,30 +19,8 @@ public class MappedInStream extends InStream {
         super(input);
     }
 
-    /**
-     * creates a view onto this buffer that will not affect the buffer itself
-     * 
-     * @param begin
-     *            relative beginning of the mapped stream
-     * @param end
-     *            relative ending of the mapped stream
-     * @return a new mapped in stream, that can read from begin to end
-     */
-    public MappedInStream view(int begin, int end) {
-        ByteBuffer r = input.duplicate();
-        int pos = input.position();
-        r.position(pos + begin);
-        r.limit(pos + end);
-        return new MappedInStream(r);
-    }
-
     public ByteBuffer asByteBuffer() {
         return input;
-    }
-
-    @Override
-    public void jump(long position) {
-        throw new IllegalStateException("there is no sane reason to jump in a mapped stream");
     }
 
     @Override

@@ -3,7 +3,7 @@
 ** \__ \ ' <| | | |__     (c) 2014-18 University of Stuttgart                 **
 ** |___/_|\_\_|_|____|    see LICENSE                                         **
 \*                                                                            */
-package de.ust.skill.common.jvm.streams;
+package ogss.common.streams;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,7 +23,6 @@ import sun.nio.ch.DirectBuffer;
  */
 final public class FileInputStream extends InStream {
 
-    private int storedPosition;
     private final Path path;
     private final FileChannel file;
     /**
@@ -51,53 +50,36 @@ final public class FileInputStream extends InStream {
     }
 
     /**
-     * Maps a part of a file not changing the position of the file stream.
+     * Maps a part of a file. The position is moved behind the mapped region.
      * 
-     * @param basePosition
-     *            absolute start index of the mapped region
-     * @param begin
-     *            begin offset of the mapped region
-     * @param end
-     *            end offset of the mapped region
+     * @param size
+     *            number of bytes to be mapped to the outgoing buffer
      */
-    synchronized public MappedInStream map(long basePosition, long begin, long end) {
+    public MappedInStream map(int size) {
         ByteBuffer r = input.duplicate();
-        r.position((int) (basePosition + begin));
-        r.limit((int) (basePosition + end));
+        int next = input.position() + size;
+        r.limit(next);
+        input.position(next);
         return new MappedInStream(r);
     }
 
-    @Override
+    /**
+     * Move the stream to a position.
+     */
     public void jump(long position) {
         input.position((int) position);
     }
 
     /**
-     * Maps from current position until offset.
-     * 
-     * @return a buffer that has exactly offset many bytes remaining
+     * @return raw byte array taken from the stream at the required position
      */
-    public final MappedInStream jumpAndMap(int offset) {
-        ByteBuffer r = input.duplicate();
-        int pos = input.position();
-        r.limit(pos + offset);
-        input.position(pos + offset);
-        return new MappedInStream(r);
-    }
-
-    /**
-     * save current position and jump to a new one
-     */
-    public void push(long position) {
-        storedPosition = input.position();
-        input.position((int) position);
-    }
-
-    /**
-     * restore saved position
-     */
-    public void pop() {
+    public final byte[] bytes(int position, int length) {
+        final byte[] rval = new byte[length];
+        final int storedPosition = input.position();
+        input.position(position);
+        input.get(rval);
         input.position(storedPosition);
+        return rval;
     }
 
     public Path path() {

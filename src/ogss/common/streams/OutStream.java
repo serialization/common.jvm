@@ -3,46 +3,63 @@
 ** \__ \ ' <| | | |__     (c) 2013-18 University of Stuttgart                 **
 ** |___/_|\_\_|_|____|    see LICENSE                                         **
 \*                                                                            */
-package de.ust.skill.common.jvm.streams;
+package ogss.common.streams;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteOrder;
 
 /**
- * Allows writing to memory mapped region.
+ * Write abstraction of ByteBuffer operations to OGSS tokens.
  *
  * @author Timm Felden
  */
-final public class MappedOutStream extends OutStream {
-
-    protected MappedOutStream(ByteBuffer buffer) {
-        super(buffer);
-    }
+abstract public class OutStream {
+    protected static final int BUFFER_SIZE = 4096;
 
     /**
-     * @return reveals the internal buffer
+     * Operations work on this buffer. If it's full refresh will be invoked.
      */
-    public ByteBuffer buffer() {
-        return buffer;
+    protected ByteBuffer buffer;
+
+    protected OutStream(ByteBuffer buffer) {
+        this.buffer = buffer;
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
 
-    /**
-     * creates a copy of this in the argument range
-     */
-    public MappedOutStream clone(int begin, int end) {
-        ByteBuffer b = buffer.duplicate();
-        b.position(begin);
-        b.limit(end);
-        return new MappedOutStream(b);
+    protected abstract void refresh() throws IOException;
+
+    final public void bool(boolean data) throws IOException {
+        throw new Error("TODO out.bool");
     }
 
-    @Override
-    protected void refresh() throws IOException {
-        // do nothing; let the JIT remove this method and all related checks
+    final public void i8(byte data) throws IOException {
+        if (buffer.remaining() < 1)
+            refresh();
+        buffer.put(data);
     }
 
-    public final void v64(int v) throws IOException {
+    final public void i16(short data) throws IOException {
+        if (buffer.remaining() < 2)
+            refresh();
+        buffer.putShort(data);
+    }
+
+    final public void i32(int data) throws IOException {
+        if (buffer.remaining() < 4)
+            refresh();
+        buffer.putInt(data);
+    }
+
+    final public void i64(long data) throws IOException {
+        if (buffer.remaining() < 8)
+            refresh();
+        buffer.putLong(data);
+    }
+
+    final public void v64(int v) throws IOException {
+        if (buffer.remaining() < 5)
+            refresh();
         if (0 == (v & 0xFFFFFF80)) {
             buffer.put((byte) v);
         } else {
@@ -66,8 +83,9 @@ final public class MappedOutStream extends OutStream {
         }
     }
 
-    @Override
-    public final void v64(long v) throws IOException {
+    final public void v64(long v) throws IOException {
+        if (buffer.remaining() < 9)
+            refresh();
         if (0L == (v & 0xFFFFFFFFFFFFFF80L)) {
             buffer.put((byte) v);
         } else {
@@ -119,9 +137,15 @@ final public class MappedOutStream extends OutStream {
         }
     }
 
-    @Override
-    public void close() {
-        ((MappedByteBuffer) buffer).force();
-        buffer = null;
+    final public void f32(float data) throws IOException {
+        if (buffer.remaining() < 4)
+            refresh();
+        buffer.putFloat(data);
+    }
+
+    final public void f64(double data) throws IOException {
+        if (buffer.remaining() < 8)
+            refresh();
+        buffer.putDouble(data);
     }
 }
