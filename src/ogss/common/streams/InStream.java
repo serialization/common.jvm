@@ -6,6 +6,7 @@
 package ogss.common.streams;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Implementations of this class are used to turn a byte stream into a stream of
@@ -18,6 +19,7 @@ public abstract class InStream {
 
     protected InStream(ByteBuffer input) {
         this.input = input;
+        input.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     /**
