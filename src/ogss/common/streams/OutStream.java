@@ -29,8 +29,17 @@ abstract public class OutStream {
 
     protected abstract void refresh() throws IOException;
 
+    byte cur;
+    byte off;
+
     final public void bool(boolean data) throws IOException {
-        throw new Error("TODO out.bool");
+        if (data)
+            cur |= 1 << off++;
+        if (8 == off) {
+            off = 0;
+            i8(cur);
+            cur = 0;
+        }
     }
 
     final public void i8(byte data) throws IOException {

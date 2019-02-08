@@ -90,6 +90,7 @@ final public class FileOutputStream extends OutStream {
      * Write a BufferdOutStream to disk prepending it with its size in bytes.
      * 
      * @note it is silently assumed, that the buffer of file output stream is unused
+     * @note the size written is reduced by 2, as no valid buffer can be smaller than that
      * @param out
      *            the data to be written
      */
@@ -108,7 +109,7 @@ final public class FileOutputStream extends OutStream {
 
         buffer.position(0);
         buffer.limit(BUFFER_SIZE);
-        v64(size);
+        v64(size - 2);
         buffer.limit(buffer.position());
         buffer.position(0);
         file.write(buffer);
