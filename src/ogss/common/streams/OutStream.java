@@ -34,8 +34,8 @@ abstract public class OutStream {
 
     final public void bool(boolean data) throws IOException {
         if (data)
-            cur |= 1 << off++;
-        if (8 == off) {
+            cur |= (1 << off);
+        if (8 == ++off) {
             off = 0;
             i8(cur);
             cur = 0;

@@ -9,8 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Implementations of this class are used to turn a byte stream into a stream of
- * integers and floats.
+ * Implementations of this class are used to turn a byte stream into a stream of integers and floats.
  *
  * @author Timm Felden
  */
@@ -46,8 +45,8 @@ public abstract class InStream {
     }
 
     /**
-     * multi byte v64 values are treated in a different function to enable
-     * inlining of more common single byte v64 values
+     * multi byte v64 values are treated in a different function to enable inlining of more common single byte v64
+     * values
      */
     @SuppressWarnings("all")
     final private int multiByteV32(int rval) {
@@ -82,8 +81,8 @@ public abstract class InStream {
     }
 
     /**
-     * multi byte v64 values are treated in a different function to enable
-     * inlining of more common single byte v64 values
+     * multi byte v64 values are treated in a different function to enable inlining of more common single byte v64
+     * values
      */
     @SuppressWarnings("all")
     final private long multiByteV64(long rval) {
@@ -150,11 +149,18 @@ public abstract class InStream {
         return input.get();
     }
 
+    int cur;
+    int off;
+
     /**
      * @return take a bool from the stream
      */
     public final boolean bool() {
-        return input.get() != 0;
+        if (0 == off)
+            cur = input.get();
+        boolean r = 0 != (cur & (1 << off));
+        off = (off + 1) & 7;
+        return r;
     }
 
     /**

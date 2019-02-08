@@ -95,6 +95,12 @@ final public class FileOutputStream extends OutStream {
      *            the data to be written
      */
     public void writeSized(BufferedOutStream out) throws IOException {
+        // finish booleans
+        if(0 != out.off) {
+            out.i8(out.cur);
+            out.off = out.cur = 0;
+        }
+        
         // move out.buffer to completed
         ByteBuffer last = out.buffer;
         out.buffer = null;
@@ -109,6 +115,7 @@ final public class FileOutputStream extends OutStream {
 
         buffer.position(0);
         buffer.limit(BUFFER_SIZE);
+        assert size >= 2 : "wrote a buffer which is too small";
         v64(size - 2);
         buffer.limit(buffer.position());
         buffer.position(0);
