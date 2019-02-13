@@ -79,7 +79,7 @@ final public class FileOutputStream extends OutStream {
         out.buffer = null;
         last.limit(last.position());
         last.position(0);
-        out.complete.addLast(last);
+        out.complete.add(last);
 
         // write completed buffers
         for (ByteBuffer data : out.complete)
@@ -106,7 +106,7 @@ final public class FileOutputStream extends OutStream {
         out.buffer = null;
         last.limit(last.position());
         last.position(0);
-        out.complete.addLast(last);
+        out.complete.add(last);
 
         // calculate and write size
         int size = 0;

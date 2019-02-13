@@ -8,7 +8,7 @@ package ogss.common.streams;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 
 /**
  * The write operations will be buffered in memory until they are written by the file output stream.
@@ -25,12 +25,12 @@ final public class BufferedOutStream extends OutStream {
     /**
      * full buffers waiting for write
      */
-    final ArrayDeque<ByteBuffer> complete = new ArrayDeque<>();
+    final ArrayList<ByteBuffer> complete = new ArrayList<>();
 
     /**
      * recycled buffers
      */
-    private final ArrayDeque<ByteBuffer> empty = new ArrayDeque<>();
+    private final ArrayList<ByteBuffer> empty = new ArrayList<>();
 
     /**
      * Put an array of bytes into the stream. Intended to be used for string images.
@@ -47,7 +47,7 @@ final public class BufferedOutStream extends OutStream {
             refresh();
             ByteBuffer tmp = ByteBuffer.wrap(data);
             tmp.position(tmp.limit());
-            complete.addLast(tmp);
+            complete.add(tmp);
         } else {
             if (buffer.remaining() < data.length)
                 refresh();
@@ -69,7 +69,7 @@ final public class BufferedOutStream extends OutStream {
             // it is, however, possible that the buffer was recycled due to a crash or discard in which case the
             // current buffer would be set already (i.e. no buffer ever completed)
         } else {
-            buffer = empty.pop();
+            buffer = empty.remove(empty.size()-1);
         }
         buffer.position(0);
         buffer.limit(buffer.capacity());
@@ -77,13 +77,15 @@ final public class BufferedOutStream extends OutStream {
 
     @Override
     protected void refresh() throws IOException {
-        complete.addLast(buffer);
+        buffer.limit(buffer.position());
+        buffer.position(0);
+        complete.add(buffer);
         // create a new buffer
         if (empty.isEmpty()) {
             buffer = ByteBuffer.allocate(BUFFER_SIZE);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
         } else {
-            buffer = empty.pop();
+            buffer = empty.remove(empty.size()-1);
             buffer.position(0);
             buffer.limit(buffer.capacity());
         }
