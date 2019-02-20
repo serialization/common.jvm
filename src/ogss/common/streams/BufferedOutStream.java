@@ -45,9 +45,7 @@ final public class BufferedOutStream extends OutStream {
         // efficiently
         if (data.length > BUFFER_SIZE) {
             refresh();
-            ByteBuffer tmp = ByteBuffer.wrap(data);
-            tmp.position(tmp.limit());
-            complete.add(tmp);
+            complete.add(ByteBuffer.wrap(data));
         } else {
             if (buffer.remaining() < data.length)
                 refresh();
@@ -63,8 +61,8 @@ final public class BufferedOutStream extends OutStream {
         cur = 0;
         empty.addAll(complete);
         complete.clear();
-        if (empty.isEmpty()) {
-            // note: empty should not be empty now, because a buffered out stream owns
+        if (buffer != null) {
+            // note: buffer should be null and empty should not be empty now, because a buffered out stream owns
             // always at least one ByteBuffer
             // it is, however, possible that the buffer was recycled due to a crash or discard in which case the
             // current buffer would be set already (i.e. no buffer ever completed)

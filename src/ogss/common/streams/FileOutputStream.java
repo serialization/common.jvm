@@ -75,11 +75,13 @@ final public class FileOutputStream extends OutStream {
         refresh();
 
         // move out.buffer to completed
-        ByteBuffer last = out.buffer;
-        out.buffer = null;
-        last.limit(last.position());
-        last.position(0);
-        out.complete.add(last);
+        {
+            ByteBuffer data = out.buffer;
+            out.buffer = null;
+            data.limit(data.position());
+            data.position(0);
+            out.complete.add(data);
+        }
 
         // write completed buffers
         for (ByteBuffer data : out.complete)
@@ -96,26 +98,28 @@ final public class FileOutputStream extends OutStream {
      */
     public void writeSized(BufferedOutStream out) throws IOException {
         // finish booleans
-        if(0 != out.off) {
+        if (0 != out.off) {
             out.i8(out.cur);
             out.off = out.cur = 0;
         }
-        
+
         // move out.buffer to completed
-        ByteBuffer last = out.buffer;
-        out.buffer = null;
-        last.limit(last.position());
-        last.position(0);
-        out.complete.add(last);
+        {
+            ByteBuffer data = out.buffer;
+            out.buffer = null;
+            data.limit(data.position());
+            data.position(0);
+            out.complete.add(data);
+        }
 
         // calculate and write size
         int size = 0;
         for (ByteBuffer data : out.complete)
             size += data.limit();
+        
 
         buffer.position(0);
         buffer.limit(BUFFER_SIZE);
-        assert size >= 2 : "wrote a buffer which is too small";
         v64(size - 2);
         buffer.limit(buffer.position());
         buffer.position(0);

@@ -53,33 +53,25 @@ final public class FileInputStream extends InStream {
      * Maps a part of a file. The position is moved behind the mapped region.
      * 
      * @param size
-     *            number of bytes to be mapped to the outgoing buffer
+     *            number of bytes to be mapped to the outgoing buffer; if -1 is passed, a copy of the whole buffer is
+     *            created
      */
     public MappedInStream map(int size) {
         ByteBuffer r = input.duplicate();
-        int next = input.position() + size;
-        r.limit(next);
-        input.position(next);
+        // hack to allow string pool to clone the InStream
+        if (-1 != size) {
+            int next = input.position() + size;
+            r.limit(next);
+            input.position(next);
+        }
         return new MappedInStream(r);
     }
 
     /**
      * Move the stream to a position.
      */
-    public void jump(long position) {
-        input.position((int) position);
-    }
-
-    /**
-     * @return raw byte array taken from the stream at the required position
-     */
-    public final byte[] bytes(int position, int length) {
-        final byte[] rval = new byte[length];
-        final int storedPosition = input.position();
+    public void jump(int position) {
         input.position(position);
-        input.get(rval);
-        input.position(storedPosition);
-        return rval;
     }
 
     public Path path() {

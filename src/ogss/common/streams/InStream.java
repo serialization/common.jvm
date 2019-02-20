@@ -164,6 +164,19 @@ public abstract class InStream {
     }
 
     /**
+     * @note this function is not thread-safe on input!
+     * @return raw byte array taken from the stream at the required position
+     */
+    public final byte[] bytes(int position, int length) {
+        final byte[] rval = new byte[length];
+        final int storedPosition = input.position();
+        input.position(position);
+        input.get(rval);
+        input.position(storedPosition);
+        return rval;
+    }
+
+    /**
      * @return true iff there are at least n bytes left in the stream
      */
     public final boolean has(int n) {
