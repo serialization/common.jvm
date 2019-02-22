@@ -49,8 +49,6 @@ public final class BoolOutWrapper extends OutStream {
      * unwrap. 
      */
     public void unwrap() throws IOException {
-        // TODO write with padding!
-
         // finish booleans
         if (0 != off) {
             i8(cur);
