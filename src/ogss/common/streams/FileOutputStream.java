@@ -34,14 +34,11 @@ final public class FileOutputStream extends OutStream {
 
     @Override
     protected void refresh() throws IOException {
-        final int p;
-        if (0 != (p = buffer.position())) {
-            buffer.limit(p);
-            buffer.position(0);
-            file.write(buffer);
-            buffer.position(0);
-            buffer.limit(buffer.capacity());
-        }
+        buffer.limit(buffer.position());
+        buffer.position(0);
+        file.write(buffer);
+        buffer.position(0);
+        buffer.limit(buffer.capacity());
     }
 
     /**
@@ -55,7 +52,8 @@ final public class FileOutputStream extends OutStream {
         // write the byte[] directly, if it is too large to be cached
         // efficiently
         if (data.length > BUFFER_SIZE / 4) {
-            refresh();
+            if (0 != buffer.position())
+                refresh();
             file.write(ByteBuffer.wrap(data));
         } else {
             if (buffer.remaining() < data.length)
@@ -72,16 +70,8 @@ final public class FileOutputStream extends OutStream {
      *            the data to be written
      */
     public void write(BufferedOutStream out) throws IOException {
-        refresh();
-
-        // move out.buffer to completed
-        {
-            ByteBuffer data = out.buffer;
-            out.buffer = null;
-            data.limit(data.position());
-            data.position(0);
-            out.complete.add(data);
-        }
+        if (0 != buffer.position())
+            refresh();
 
         // write completed buffers
         for (ByteBuffer data : out.complete)
@@ -97,30 +87,9 @@ final public class FileOutputStream extends OutStream {
      *            the data to be written
      */
     public void writeSized(BufferedOutStream out) throws IOException {
-        // finish booleans
-        if (0 != out.off) {
-            out.i8(out.cur);
-            out.off = out.cur = 0;
-        }
-
-        // move out.buffer to completed
-        {
-            ByteBuffer data = out.buffer;
-            out.buffer = null;
-            data.limit(data.position());
-            data.position(0);
-            out.complete.add(data);
-        }
-
-        // calculate and write size
-        int size = 0;
-        for (ByteBuffer data : out.complete)
-            size += data.limit();
-        
-
         buffer.position(0);
         buffer.limit(BUFFER_SIZE);
-        v64(size - 2);
+        v64(out.size - 2);
         buffer.limit(buffer.position());
         buffer.position(0);
         file.write(buffer);
@@ -135,6 +104,7 @@ final public class FileOutputStream extends OutStream {
      * 
      * @note it is silently assumed, that the last operations were a sequence of write writeSized*
      */
+    @Override
     public void close() throws IOException {
         if (file.size() != file.position()) {
             file.truncate(file.position());

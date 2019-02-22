@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
  * @note The stream is called mapped for historical reasons. In fact we map the whole file and duplicate the buffer.
  * @author Timm Felden
  */
-public class MappedInStream extends InStream {
+public final class MappedInStream extends InStream {
 
     public MappedInStream(ByteBuffer input) {
         super(input);
@@ -27,5 +27,21 @@ public class MappedInStream extends InStream {
     public String toString() {
         return String.format("MappedInStream(0x%X -> 0x%X, next: 0x%X)", input.position(), input.limit(),
                 input.get(input.position()));
+    }
+
+    int cur;
+    int off;
+
+    /**
+     * take a bool from the stream
+     * 
+     * @note can only happen during field reads, i.e. on a mapped in stream
+     */
+    public final boolean bool() {
+        if (0 == off)
+            cur = input.get();
+        boolean r = 0 != (cur & (1 << off));
+        off = (off + 1) & 7;
+        return r;
     }
 }

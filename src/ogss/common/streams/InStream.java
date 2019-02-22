@@ -41,7 +41,7 @@ public abstract class InStream {
     public final int v32() {
         int rval;
 
-        return (0 != ((rval = i8()) & 0x80)) ? multiByteV32(rval) : rval;
+        return ((rval = i8()) < 0) ? longV32(rval) : rval;
     }
 
     /**
@@ -49,26 +49,33 @@ public abstract class InStream {
      * values
      */
     @SuppressWarnings("all")
-    final private int multiByteV32(int rval) {
-        int r;
-        rval = (rval & 0x7f) | (((r = i8()) & 0x7f) << 7);
+    final private int longV32(int v) {
+        v = (v & 0x7f) | (i8() << 7);
 
-        if (0 != (r & 0x80)) {
-            rval |= ((r = i8()) & 0x7f) << 14;
+        boolean next = v < 0;
+        v &= 0x3fff;
 
-            if (0 != (r & 0x80)) {
-                rval |= ((r = i8()) & 0x7f) << 21;
+        if (next) {
+            v |= i8() << 14;
+            next = v < 0;
+            v &= 0x1fffff;
 
-                if (0 != (r & 0x80)) {
-                    rval |= ((r = i8()) & 0x7f) << 28;
+            if (next) {
+                v |= i8() << 21;
+                next = v < 0;
+                v &= 0xfffffff;
 
-                    if (0 != (r & 0x80)) {
+                if (next) {
+                    v |= (long)i8() << 28;
+                    next = v < 0;
+
+                    if (next) {
                         throw new IllegalStateException("unexpected overlong v64 value (expected 32bit)");
                     }
                 }
             }
         }
-        return rval;
+        return v;
     }
 
     /**
@@ -77,7 +84,7 @@ public abstract class InStream {
     public final long v64() {
         long rval;
 
-        return (0 != ((rval = i8()) & 0x80)) ? multiByteV64(rval) : rval;
+        return ((rval = i8()) < 0) ? longV64(rval) : rval;
     }
 
     /**
@@ -85,30 +92,44 @@ public abstract class InStream {
      * values
      */
     @SuppressWarnings("all")
-    final private long multiByteV64(long rval) {
-        long r;
-        rval = (rval & 0x7f) | (((r = i8()) & 0x7f) << 7);
+    final private long longV64(long v) {
+        v = (v & 0x7fL) | (i8() << 7L);
 
-        if (0 != (r & 0x80)) {
-            rval |= ((r = i8()) & 0x7f) << 14;
+        boolean next = v < 0L;
+        v &= 0x3fffL;
 
-            if (0 != (r & 0x80)) {
-                rval |= ((r = i8()) & 0x7f) << 21;
+        if (next) {
+            v |= i8() << 14L;
+            next = v < 0L;
+            v &= 0x1fffffL;
 
-                if (0 != (r & 0x80)) {
-                    rval |= ((r = i8()) & 0x7f) << 28;
+            if (next) {
+                v |= i8() << 21L;
+                next = v < 0L;
+                v &= 0xfffffffL;
 
-                    if (0 != (r & 0x80)) {
-                        rval |= ((r = i8()) & 0x7f) << 35;
+                if (next) {
+                    v |= (long)i8() << 28L;
+                    next = v < 0L;
+                    v &= 0x7ffffffffL;
 
-                        if (0 != (r & 0x80)) {
-                            rval |= ((r = i8()) & 0x7f) << 42;
+                    if (next) {
+                        v |= (long)i8() << 35L;
+                        next = v < 0L;
+                        v &= 0x3ffffffffffL;
 
-                            if (0 != (r & 0x80)) {
-                                rval |= ((r = i8()) & 0x7f) << 49;
+                        if (next) {
+                            v |= (long)i8() << 42L;
+                            next = v < 0L;
+                            v &= 0x1ffffffffffffL;
 
-                                if (0 != (r & 0x80)) {
-                                    rval |= (((long) i8()) << 56);
+                            if (next) {
+                                v |= (long)i8() << 49L;
+                                next = v < 0L;
+                                v &= 0xffffffffffffffL;
+
+                                if (next) {
+                                    v |= (long)i8() << 56L;
                                 }
                             }
                         }
@@ -116,7 +137,7 @@ public abstract class InStream {
                 }
             }
         }
-        return rval;
+        return v;
     }
 
     /**
@@ -147,20 +168,6 @@ public abstract class InStream {
      */
     public final byte i8() {
         return input.get();
-    }
-
-    int cur;
-    int off;
-
-    /**
-     * @return take a bool from the stream
-     */
-    public final boolean bool() {
-        if (0 == off)
-            cur = input.get();
-        boolean r = 0 != (cur & (1 << off));
-        off = (off + 1) & 7;
-        return r;
     }
 
     /**

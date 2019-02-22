@@ -17,6 +17,8 @@ import java.util.ArrayList;
  */
 final public class BufferedOutStream extends OutStream {
 
+    int size;
+
     public BufferedOutStream() {
         super(ByteBuffer.allocate(BUFFER_SIZE));
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -44,7 +46,8 @@ final public class BufferedOutStream extends OutStream {
         // write the byte[] directly, if it is too large to be cached
         // efficiently
         if (data.length > BUFFER_SIZE) {
-            refresh();
+            if (0 != buffer.position())
+                refresh();
             complete.add(ByteBuffer.wrap(data));
         } else {
             if (buffer.remaining() < data.length)
@@ -57,25 +60,19 @@ final public class BufferedOutStream extends OutStream {
      * Recycle this buffer. Invalidates its content, but keeps all memory.
      */
     public void recycle() {
-        off = 0;
-        cur = 0;
         empty.addAll(complete);
         complete.clear();
-        if (buffer != null) {
-            // note: buffer should be null and empty should not be empty now, because a buffered out stream owns
-            // always at least one ByteBuffer
-            // it is, however, possible that the buffer was recycled due to a crash or discard in which case the
-            // current buffer would be set already (i.e. no buffer ever completed)
-        } else {
-            buffer = empty.remove(empty.size()-1);
-        }
+        size = 0;
+        buffer = empty.remove(empty.size() - 1);
         buffer.position(0);
         buffer.limit(buffer.capacity());
     }
 
     @Override
     protected void refresh() throws IOException {
-        buffer.limit(buffer.position());
+        final int p = buffer.position();
+        size += p;
+        buffer.limit(p);
         buffer.position(0);
         complete.add(buffer);
         // create a new buffer
@@ -83,14 +80,18 @@ final public class BufferedOutStream extends OutStream {
             buffer = ByteBuffer.allocate(BUFFER_SIZE);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
         } else {
-            buffer = empty.remove(empty.size()-1);
+            buffer = empty.remove(empty.size() - 1);
             buffer.position(0);
             buffer.limit(buffer.capacity());
         }
-        if (0 != off) {
-            off = 0;
-            i8(cur);
-            cur = 0;
-        }
+    }
+
+    @Override
+    public void close() {
+        final int p = buffer.position();
+        size += p;
+        buffer.limit(p);
+        buffer.position(0);
+        complete.add(buffer);
     }
 }

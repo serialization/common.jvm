@@ -27,20 +27,12 @@ abstract public class OutStream {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
 
+    /**
+     * Refresh the buffer.
+     * 
+     * @note do not call this method if the buffer is empty
+     */
     protected abstract void refresh() throws IOException;
-
-    byte cur;
-    byte off;
-
-    final public void bool(boolean data) throws IOException {
-        if (data)
-            cur |= (1 << off);
-        if (8 == ++off) {
-            off = 0;
-            i8(cur);
-            cur = 0;
-        }
-    }
 
     final public void i8(byte data) throws IOException {
         if (buffer.remaining() < 1)
@@ -157,4 +149,11 @@ abstract public class OutStream {
             refresh();
         buffer.putDouble(data);
     }
+
+    /**
+     * ensure that the stream is in the expected state
+     * 
+     * @note close streams before reusing them!
+     */
+    abstract public void close() throws IOException;
 }
