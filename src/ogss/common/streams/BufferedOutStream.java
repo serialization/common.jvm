@@ -49,6 +49,7 @@ final public class BufferedOutStream extends OutStream {
             if (0 != buffer.position())
                 refresh();
             complete.add(ByteBuffer.wrap(data));
+            size += data.length;
         } else {
             if (buffer.remaining() < data.length)
                 refresh();
