@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 /**
@@ -20,16 +21,11 @@ final public class FileOutputStream extends OutStream {
 
     private final FileChannel file;
 
-    public FileOutputStream(FileInputStream target) throws IOException {
+    public FileOutputStream(Path path) throws IOException {
         super(ByteBuffer.allocate(BUFFER_SIZE));
-        FileChannel f = target.file();
-        // can happen after multiple flush operations
-        if (!f.isOpen()) {
-            f = (FileChannel) Files.newByteChannel(target.path(), StandardOpenOption.CREATE, StandardOpenOption.READ,
-                    StandardOpenOption.WRITE);
-        }
-        f.position(0);
-        this.file = f;
+        file = (FileChannel) Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.READ,
+                StandardOpenOption.WRITE);
+        file.position(0);
     }
 
     @Override

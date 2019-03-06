@@ -23,7 +23,6 @@ import sun.nio.ch.DirectBuffer;
  */
 final public class FileInputStream extends InStream {
 
-    private final Path path;
     private final FileChannel file;
     /**
      * true iff the file is shared with an output channel
@@ -35,18 +34,31 @@ final public class FileInputStream extends InStream {
         return file;
     }
 
-    public static FileInputStream open(Path path, boolean readOnly) throws IOException {
-        FileChannel file = (FileChannel) (readOnly
-                ? Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.READ)
-                : Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.READ,
-                        StandardOpenOption.WRITE));
-        return new FileInputStream(file, path, readOnly);
+    /**
+     * The factory method.
+     * 
+     * @note required to adhere to stupid Java initialization rules ;)
+     */
+    public static FileInputStream open(Path path) throws IOException {
+        return new FileInputStream(
+                (FileChannel) (Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.READ)), path);
     }
 
-    private FileInputStream(FileChannel file, Path path, boolean readOnly) throws IOException {
-        super(file.map(readOnly ? MapMode.READ_ONLY : MapMode.READ_WRITE, 0, file.size()));
+    private FileInputStream(FileChannel file, Path path) throws IOException {
+        super(file.map(MapMode.READ_ONLY, 0, file.size()));
         this.file = file;
-        this.path = path;
+    }
+
+    /**
+     * @return size of the file in bytes
+     * @note we can only get here, if size fits into int (ByteBuffer madness)
+     */
+    public int size() {
+        try {
+            return (int) file.size();
+        } catch (IOException e) {
+            return 0;
+        }
     }
 
     /**
@@ -72,10 +84,6 @@ final public class FileInputStream extends InStream {
      */
     public void jump(int position) {
         input.position(position);
-    }
-
-    public Path path() {
-        return path;
     }
 
     public void close() throws IOException {
