@@ -66,7 +66,7 @@ public abstract class InStream {
                 v &= 0xfffffff;
 
                 if (next) {
-                    v |= (long)i8() << 28;
+                    v |= (long) i8() << 28;
                     next = v < 0;
 
                     if (next) {
@@ -109,27 +109,27 @@ public abstract class InStream {
                 v &= 0xfffffffL;
 
                 if (next) {
-                    v |= (long)i8() << 28L;
+                    v |= (long) i8() << 28L;
                     next = v < 0L;
                     v &= 0x7ffffffffL;
 
                     if (next) {
-                        v |= (long)i8() << 35L;
+                        v |= (long) i8() << 35L;
                         next = v < 0L;
                         v &= 0x3ffffffffffL;
 
                         if (next) {
-                            v |= (long)i8() << 42L;
+                            v |= (long) i8() << 42L;
                             next = v < 0L;
                             v &= 0x1ffffffffffffL;
 
                             if (next) {
-                                v |= (long)i8() << 49L;
+                                v |= (long) i8() << 49L;
                                 next = v < 0L;
                                 v &= 0xffffffffffffffL;
 
                                 if (next) {
-                                    v |= (long)i8() << 56L;
+                                    v |= (long) i8() << 56L;
                                 }
                             }
                         }
@@ -171,15 +171,21 @@ public abstract class InStream {
     }
 
     /**
-     * @note this function is not thread-safe on input!
+     * @param position
+     *            of the first read; on -1, the current position will be used and the current position will move
+     * @note this function is not thread-safe on input if position != -1
      * @return raw byte array taken from the stream at the required position
      */
     public final byte[] bytes(int position, int length) {
         final byte[] rval = new byte[length];
-        final int storedPosition = input.position();
-        input.position(position);
-        input.get(rval);
-        input.position(storedPosition);
+        if (-1 == position) {
+            input.get(rval);
+        } else {
+            final int storedPosition = input.position();
+            input.position(position);
+            input.get(rval);
+            input.position(storedPosition);
+        }
         return rval;
     }
 

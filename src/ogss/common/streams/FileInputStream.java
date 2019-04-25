@@ -79,13 +79,6 @@ final public class FileInputStream extends InStream {
         return new MappedInStream(r);
     }
 
-    /**
-     * Move the stream to a position.
-     */
-    public void jump(int position) {
-        input.position(position);
-    }
-
     public void close() throws IOException {
         if (file.isOpen()) {
             if (!sharedFile)
