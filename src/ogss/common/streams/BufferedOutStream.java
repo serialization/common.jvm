@@ -48,7 +48,9 @@ final public class BufferedOutStream extends OutStream {
         if (data.length > BUFFER_SIZE) {
             if (0 != buffer.position())
                 refresh();
-            complete.add(ByteBuffer.wrap(data));
+            ByteBuffer buf = ByteBuffer.wrap(data);
+            buf.order(ByteOrder.LITTLE_ENDIAN);
+            complete.add(buf);
             size += data.length;
         } else {
             if (buffer.remaining() < data.length)
