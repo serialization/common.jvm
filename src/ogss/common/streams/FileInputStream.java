@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
 /**
@@ -65,8 +64,8 @@ final public class FileInputStream extends InStream {
      * Maps a part of a file. The position is moved behind the mapped region.
      * 
      * @param size
-     *            number of bytes to be mapped to the outgoing buffer; if -1 is passed, a copy of the whole buffer is
-     *            created
+     *            number of bytes to be mapped to the outgoing buffer; if -1 is
+     *            passed, a copy of the whole buffer is created
      */
     public MappedInStream map(int size) {
         ByteBuffer r = input.duplicate();
@@ -83,12 +82,6 @@ final public class FileInputStream extends InStream {
         if (file.isOpen()) {
             if (!sharedFile)
                 file.close();
-
-            if (null != input && input instanceof DirectBuffer) {
-                Cleaner cleaner = ((DirectBuffer) input).cleaner();
-                if (null != cleaner)
-                    cleaner.clean();
-            }
         }
     }
 
