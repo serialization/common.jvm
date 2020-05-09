@@ -3,7 +3,7 @@
 ** \__ \ ' <| | | |__     (c) 2013-18 University of Stuttgart                 **
 ** |___/_|\_\_|_|____|    see LICENSE                                         **
 \*                                                                            */
-package ogss.common.streams;
+package ogss.common.jvm.streams;
 
 import java.nio.ByteBuffer;
 

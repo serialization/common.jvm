@@ -1,4 +1,4 @@
-package ogss.common.streams;
+package ogss.common.jvm.streams;
 
 import java.io.IOException;
 
