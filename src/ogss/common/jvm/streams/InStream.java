@@ -5,6 +5,7 @@
 \*                                                                            */
 package ogss.common.jvm.streams;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -149,7 +150,7 @@ public abstract class InStream {
 
     /**
      * @return take an i32 from the stream
-     * @throws UnexpectedEOF
+     * @throws BufferUnderflowException
      *             if there is no i32 in the stream
      */
     public final int i32() {

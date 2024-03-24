@@ -13,8 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import sun.nio.ch.DirectBuffer;
-
 /**
  * FileChannel based input stream.
  *
@@ -35,7 +33,7 @@ final public class FileInputStream extends InStream {
 
     /**
      * The factory method.
-     * 
+     *
      * @note required to adhere to stupid Java initialization rules ;)
      */
     public static FileInputStream open(Path path) throws IOException {
@@ -62,7 +60,7 @@ final public class FileInputStream extends InStream {
 
     /**
      * Maps a part of a file. The position is moved behind the mapped region.
-     * 
+     *
      * @param size
      *            number of bytes to be mapped to the outgoing buffer; if -1 is
      *            passed, a copy of the whole buffer is created
@@ -87,7 +85,6 @@ final public class FileInputStream extends InStream {
 
     @Override
     protected void finalize() throws Throwable {
-        super.finalize();
         close();
     }
 }
